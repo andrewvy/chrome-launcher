@@ -3,6 +3,8 @@ defmodule ChromeLauncher do
   Documentation for ChromeLauncher.
   """
 
+  require Logger
+
   def default_opts() do
     [
       remote_debugging_port: 9222,
@@ -30,8 +32,12 @@ defmodule ChromeLauncher do
         cmd = [String.to_charlist(path) | formatted_flags(merged_opts)]
 
         exec_opts = [
-          stdout: fn(status, pid, data) -> IO.inspect(data) end,
-          stderr: fn(status, pid, data) -> IO.inspect(data) end
+          stdout: fn(_, pid, data) ->
+            Logger.info("[#{pid}] #{inspect(data)}")
+          end,
+          stderr: fn(_, pid, data) ->
+            Logger.error("[#{pid}] #{inspect(data)}")
+          end
         ]
 
         :exec.run_link(cmd, exec_opts)
