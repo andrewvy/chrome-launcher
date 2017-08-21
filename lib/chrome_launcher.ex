@@ -24,6 +24,7 @@ defmodule ChromeLauncher do
     ]
   end
 
+  @spec launch(list()) :: {:ok, pid()} | {:error, atom()}
   def launch(opts) do
     merged_opts = Keyword.merge(default_opts(), opts)
 
@@ -40,7 +41,8 @@ defmodule ChromeLauncher do
           end
         ]
 
-        :exec.run_link(cmd, exec_opts)
+        {:ok, pid, _os_pid} = :exec.run_link(cmd, exec_opts)
+        {:ok, pid}
       {:error, _} = error ->
         error
     end
