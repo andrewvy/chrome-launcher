@@ -1,1 +1,1 @@
-%{"porcelain": {:hex, :porcelain, "2.0.3", "2d77b17d1f21fed875b8c5ecba72a01533db2013bd2e5e62c6d286c029150fdc", [:mix], []}}
+%{"erlexec": {:hex, :erlexec, "1.7.1", "6ddbd40fa202084ed0bdaf95a50c334acaa5644ae213b903cd4094a78ae79734", [:rebar3], []}}

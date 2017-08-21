@@ -27,14 +27,14 @@ defmodule ChromeLauncher do
 
     case ChromeLauncher.Finder.find() do
       {:ok, path} ->
-        proc_opts = [
-          out: IO.stream(:stdio, :line)
+        cmd = [String.to_charlist(path) | formatted_flags(merged_opts)]
+
+        exec_opts = [
+          stdout: fn(status, pid, data) -> IO.inspect(data) end,
+          stderr: fn(status, pid, data) -> IO.inspect(data) end
         ]
 
-        # @bug(vy): Porcelain won't forward exit by the VM, leaving orphaned process.
-        process = Porcelain.spawn(path, formatted_flags(merged_opts), proc_opts)
-
-        {:ok, process}
+        :exec.run_link(cmd, exec_opts)
       {:error, _} = error ->
         error
     end
@@ -45,6 +45,7 @@ defmodule ChromeLauncher do
       "--remote-debugging-port=#{opts[:remote_debugging_port]}",
     ]
 
-    internal_flags ++ List.wrap(opts[:flags])
+    (internal_flags ++ List.wrap(opts[:flags]))
+    |> Enum.map(&String.to_charlist/1)
   end
 end

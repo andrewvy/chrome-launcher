@@ -14,14 +14,14 @@ defmodule ChromeLauncher.Mixfile do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :erlexec]
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:porcelain, "~> 2.0"}
+      {:erlexec, "~> 1.7"}
     ]
   end
 end
