@@ -41,14 +41,37 @@ defmodule ChromeLauncher do
           end
         ]
 
-        {:ok, pid, _os_pid} = :exec.run_link(cmd, exec_opts)
-        {:ok, pid}
+        with \
+          {:ok, pid, os_pid} <- :exec.run_link(cmd, exec_opts),
+          {:ok, _os_pid} <- await_process_on_port(os_pid, merged_opts[:remote_debugging_port])
+        do
+          {:ok, pid}
+        else
+          error ->
+            error
+        end
       {:error, _} = error ->
         error
     end
   end
 
-  def formatted_flags(opts) do
+  # Awaits for the chrome process to launch by trying to initiate a TCP
+  # connection to the remote debugging port.
+  defp await_process_on_port(os_pid, port), do: await_process_on_port(os_pid, port, 10)
+  defp await_process_on_port(os_pid, _port, 0) do
+    :exec.kill(os_pid, 15)
+    {:error, :process_did_not_launch}
+  end
+  defp await_process_on_port(os_pid, port, retries_left) do
+    case :gen_tcp.connect('localhost', port, []) do
+      {:error, _} ->
+        Process.sleep(15)
+        await_process_on_port(os_pid, port, retries_left - 1)
+      _ -> {:ok, os_pid}
+    end
+  end
+
+  defp formatted_flags(opts) do
     internal_flags = [
       "--remote-debugging-port=#{opts[:remote_debugging_port]}",
     ]
