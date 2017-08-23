@@ -5,27 +5,11 @@ defmodule ChromeLauncher do
 
   require Logger
 
-  def default_opts() do
-    [
-      remote_debugging_port: 9222,
-      flags: [
-        "--headless",
-        "--disable-gpu",
-        "--disable-translate",
-        "--disable-extensions",
-        "--disable-background-networking",
-        "--safebrowsing-disable-auto-update",
-        "--disable-sync",
-        "--metrics-recording-only",
-        "--disable-default-apps",
-        "--mute-audio",
-        "--no-first-run"
-      ]
-    ]
-  end
-
+  @doc """
+  Launches an instance of Chrome.
+  """
   @spec launch(list()) :: {:ok, pid()} | {:error, atom()}
-  def launch(opts) do
+  def launch(opts \\ []) do
     merged_opts = Keyword.merge(default_opts(), opts)
 
     case ChromeLauncher.Finder.find() do
@@ -54,6 +38,26 @@ defmodule ChromeLauncher do
         error
     end
   end
+
+  def default_opts() do
+    [
+      remote_debugging_port: 9222,
+      flags: [
+        "--headless",
+        "--disable-gpu",
+        "--disable-translate",
+        "--disable-extensions",
+        "--disable-background-networking",
+        "--safebrowsing-disable-auto-update",
+        "--disable-sync",
+        "--metrics-recording-only",
+        "--disable-default-apps",
+        "--mute-audio",
+        "--no-first-run"
+      ]
+    ]
+  end
+
 
   # Awaits for the chrome process to launch by trying to initiate a TCP
   # connection to the remote debugging port.
