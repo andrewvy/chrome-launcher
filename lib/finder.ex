@@ -32,17 +32,17 @@ defmodule ChromeLauncher.Finder do
     end
   end
 
-  @lsregister String.to_charlist("/System/Library/Frameworks/CoreServices.framework" <>
-    "/Versions/A/Frameworks/LaunchServices.framework" <>
-    "/Versions/A/Support/lsregister")
-
-  @suffixes ["/Contents/MacOS/Google Chrome Canary", "/Contents/MacOS/Google Chrome"]
-
   def darwin() do
-    cmd = @lsregister ++ ' -dump | grep -i \'Google Chrome\\( Canary\\)\\?.app$\' | awk \'{$1=""; print $0}\''
+    lsregister = String.to_charlist("/System/Library/Frameworks/CoreServices.framework" <>
+      "/Versions/A/Frameworks/LaunchServices.framework" <>
+      "/Versions/A/Support/lsregister")
+
+    suffixes = ["/Contents/MacOS/Google Chrome Canary", "/Contents/MacOS/Google Chrome"]
+
+    cmd = lsregister ++ ' -dump | grep -i \'Google Chrome\\( Canary\\)\\?.app$\' | awk \'{$1=""; print $0}\''
 
     default_installation_paths = [
-      (System.get_env("CHROME_PATH") || "")
+      resolve_chrome_path()
     ]
 
     installation_paths =
@@ -52,28 +52,39 @@ defmodule ChromeLauncher.Finder do
       |> String.split("\n")
       |> Enum.map(&String.trim/1)
       |> Enum.flat_map(fn(prefix) ->
-        @suffixes |> Enum.map(&(prefix <> &1))
+        suffixes |> Enum.map(&(prefix <> &1))
       end)
 
-    existing_installation_paths =
-      (default_installation_paths ++ installation_paths)
-      |> Enum.filter(&is_executable/1)
-
-    case existing_installation_paths do
-      [first | _] -> {:ok, first}
-      _ -> {:error, :chrome_not_found}
-    end
+    sort(default_installation_paths ++ installation_paths)
   end
 
   def linux() do
-    # @todo(vy): Add Linux implementation.
+    default_installation_paths = [
+      resolve_chrome_path()
+    ]
+
+    executables =  [
+      "google-chrome-stable",
+      "google-chrome",
+      "chromium-browser",
+      "chromium",
+    ]
+
+    installation_paths = Enum.reduce(executables, [], fn(executable, paths) ->
+      case System.cmd("which", [executable]) do
+        {path, 0} -> List.insert_at(paths, -1, String.trim(path))
+        _ -> paths
+      end
+    end)
+
+    sort(default_installation_paths ++ installation_paths)
   end
 
   def win32() do
     # @todo(vy): Add Windows implementation.
   end
 
-  def is_executable(path) do
+  def executable?(path) do
     case File.stat(path) do
       {:ok, _} -> true
       {:error, _} -> false
@@ -81,4 +92,17 @@ defmodule ChromeLauncher.Finder do
   end
 
   defp os(), do: :os.type()
+
+  defp resolve_chrome_path() do
+    System.get_env("CHROME_PATH") || ""
+  end
+
+  defp sort(paths) do
+    paths
+    |> Enum.filter(&executable?/1)
+    |> case do
+      [first | _] -> {:ok, first}
+      _ -> {:error, :chrome_not_found}
+    end
+  end
 end
