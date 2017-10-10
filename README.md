@@ -2,7 +2,9 @@
 
 This Elixir library makes launching headless Google Chrome processes with custom options easily.
 
-Currently only supports OSX with plans for Linux in the future. Utilizes [erlexec](https://github.com/saleyn/erlexec) to manage processes under the hood.
+Utilizes [erlexec](https://github.com/saleyn/erlexec) to manage processes under the hood.
+
+Only supports OSX + Linux at this time.
 
 ---
 

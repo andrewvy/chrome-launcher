@@ -15,9 +15,7 @@ defmodule ChromeLauncher.Finder do
   > Linux:
 
   1) $CHROME_PATH environment variable
-  2) $HOME/.local/share/applications
-  3) /usr/share/applications
-  4) `which` [google-chrome-stable, google-chrome, chromium-browser, chromium]
+  2) `which` [google-chrome-stable, google-chrome, chromium-browser, chromium]
 
   > Windows:
 
