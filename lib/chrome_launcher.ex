@@ -76,8 +76,11 @@ defmodule ChromeLauncher do
   end
 
   defp formatted_flags(opts) do
+    tmp_dir = System.tmp_dir()
+
     internal_flags = [
       "--remote-debugging-port=#{opts[:remote_debugging_port]}",
+      "--crash-dumps-dir=#{tmp_dir}"
     ]
 
     (internal_flags ++ List.wrap(opts[:flags]))
