@@ -69,7 +69,7 @@ defmodule ChromeLauncher do
   defp await_process_on_port(os_pid, port, retries_left) do
     case :gen_tcp.connect('localhost', port, []) do
       {:error, _} ->
-        Process.sleep(15)
+        Process.sleep(30)
         await_process_on_port(os_pid, port, retries_left - 1)
       _ -> {:ok, os_pid}
     end
