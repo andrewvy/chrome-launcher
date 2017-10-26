@@ -5,6 +5,18 @@ defmodule ChromeLauncher do
 
   require Logger
 
+  def child_spec(opts) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, [opts]},
+      restart: :permanent,
+      shutdown: 5000,
+      type: :worker
+    }
+  end
+
+  def start_link(opts \\ []), do: launch(opts)
+
   @doc """
   Launches an instance of Chrome.
   """
