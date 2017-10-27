@@ -35,7 +35,7 @@ defmodule ChromeLauncher do
           end,
           stderr: fn(_, pid, data) ->
             if !Process.get(:chrome_launched, false) && :binary.match(data, "DevTools listening on ws://") do
-              send(parent, :chrome_launched)
+              send(parent, {:chrome_launched, pid})
               Process.put(:chrome_launched, true)
             end
 
@@ -78,7 +78,7 @@ defmodule ChromeLauncher do
 
   defp wait_for_chrome_to_launch(os_pid) do
     receive do
-      :chrome_launched ->
+      {:chrome_launched, ^os_pid} ->
         {:ok, os_pid}
     after
       10_000 ->
