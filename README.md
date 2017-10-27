@@ -11,7 +11,7 @@ Only supports OSX + Linux at this time.
 ### Installation:
 
 ```elixir
-{:chrome_launcher, "~> 0.0.3"}
+{:chrome_launcher, "~> 0.0.4"}
 ```
 
 ### Usage:
