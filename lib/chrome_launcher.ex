@@ -34,7 +34,7 @@ defmodule ChromeLauncher do
             Logger.info("[#{pid}] #{inspect(data)}")
           end,
           stderr: fn(_, pid, data) ->
-            if !Process.get(:chrome_launched, false) && :binary.match(data, "DevTools listening on ws://") do
+            if !Process.get(:chrome_launched, false) && (:binary.match(data, "DevTools listening on ws://") != :nomatch) do
               send(parent, {:chrome_launched, pid})
               Process.put(:chrome_launched, true)
             end
