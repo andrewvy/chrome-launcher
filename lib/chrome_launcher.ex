@@ -27,19 +27,25 @@ defmodule ChromeLauncher do
     case ChromeLauncher.Finder.find() do
       {:ok, path} ->
         cmd = [String.to_charlist(path) | formatted_flags(merged_opts)]
+        parent = self()
 
         exec_opts = [
           stdout: fn(_, pid, data) ->
             Logger.info("[#{pid}] #{inspect(data)}")
           end,
           stderr: fn(_, pid, data) ->
+            if !Process.get(:chrome_launched, false) && :binary.match(data, "DevTools listening on ws://") do
+              send(parent, :chrome_launched)
+              Process.put(:chrome_launched, true)
+            end
+
             Logger.error("[#{pid}] #{inspect(data)}")
           end
         ]
 
         with \
           {:ok, pid, os_pid} <- :exec.run_link(cmd, exec_opts),
-          {:ok, _os_pid} <- await_process_on_port(os_pid, merged_opts[:remote_debugging_port])
+          {:ok, _os_pid} <- wait_for_chrome_to_launch(os_pid)
         do
           {:ok, pid}
         else
@@ -70,22 +76,14 @@ defmodule ChromeLauncher do
     ]
   end
 
-
-  # Awaits for the chrome process to launch by trying to initiate a TCP
-  # connection to the remote debugging port.
-  defp await_process_on_port(os_pid, port), do: await_process_on_port(os_pid, port, 10)
-  defp await_process_on_port(os_pid, _port, 0) do
-    :exec.kill(os_pid, 15)
-    {:error, :process_did_not_launch}
-  end
-  defp await_process_on_port(os_pid, port, retries_left) do
-    case :gen_tcp.connect('localhost', port, []) do
-      {:ok, socket} ->
-        :gen_tcp.close(socket)
+  defp wait_for_chrome_to_launch(os_pid) do
+    receive do
+      :chrome_launched ->
         {:ok, os_pid}
-      _ ->
-        Process.sleep(30)
-        await_process_on_port(os_pid, port, retries_left - 1)
+    after
+      10_000 ->
+        :exec.kill(os_pid, 15)
+        {:error, :process_did_not_launch}
     end
   end
 
