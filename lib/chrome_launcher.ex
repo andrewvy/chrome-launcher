@@ -30,16 +30,16 @@ defmodule ChromeLauncher do
         parent = self()
 
         exec_opts = [
-          stdout: fn(_, pid, data) ->
-            Logger.info("[#{pid}] #{inspect(data)}")
+          stdout: fn(_, _, data) ->
+            Logger.info(data)
           end,
           stderr: fn(_, pid, data) ->
-            if !Process.get(:chrome_launched, false) && (:binary.match(data, "DevTools listening on ws://") != :nomatch) do
+            if !Process.get(:chrome_launched, false) && (:binary.match(data, "DevTools listening on") != :nomatch) do
               send(parent, {:chrome_launched, pid})
               Process.put(:chrome_launched, true)
+            else
+              ChromeLauncher.Logger.log(data)
             end
-
-            Logger.error("[#{pid}] #{inspect(data)}")
           end
         ]
 
